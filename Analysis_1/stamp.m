@@ -10,7 +10,6 @@ function [stencil, B] = stamp(i, j, X, Y, B, TD)
 %    alpha     alpha
 %    Tinf      Tinf for Robin BC
 %    boundary  defines the boundary conditions
-%    verbose   verbositiy level
 %
 %  output:
 %    stencil     linear equation for node (i,j)
@@ -18,7 +17,6 @@ function [stencil, B] = stamp(i, j, X, Y, B, TD)
 
 
 % Init
-
 n = size(X, 1);
 m = size(X, 2);
 stencil = zeros(1, n*m);

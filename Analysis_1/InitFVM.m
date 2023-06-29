@@ -29,14 +29,9 @@ h2 = 4;
 l = 5;
 
 % Number of degrees of freedom (number of nodes per length)
-
 dimX = 50;
 dimY = 50;
 
-
-% Parameter for Conjugated Heat Transfer (For Session 04)
-alpha = 5;
-Tinf = 90;
 
 % Values for Dirichlet BC
 

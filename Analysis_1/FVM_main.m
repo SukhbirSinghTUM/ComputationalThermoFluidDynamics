@@ -2,13 +2,6 @@ clc
 clear 
 close all
 
-% SESSION_03
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Program to solve the 2D steady heat equation in a non-Cartesian Grid by
-% the Finite Volumes Method.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 %% Initialize variables
 
