@@ -1,0 +1,141 @@
+function [stecil] = stamp(i, j, X, Y)
+%stecil calculate the linear equation for node (i, j)
+
+%  input:
+%    i         node number in x direction
+%    j         node number in y direction
+%    X         x position of the nodes
+%    Y         y position of the nodes
+%    b         right-hand side value for node (i,j)
+%    alpha     alpha
+%    Tinf      Tinf for Robin BC
+%    boundary  defines the boundary conditions
+%    verbose   verbositiy level
+%
+%  output:
+%    stecil     linear equation for node (i,j)
+%    b         new right-hand side value for node (i,j)
+
+
+% Init
+
+n = size(X, 1);
+m = size(X, 2);
+stecil = zeros(1, n*m);
+index=@(ii, jj) ii + (jj-1)*n;
+
+% Determine the node positon
+if ?
+    nodePosition = 'West';
+elseif ?
+    nodePosition = 'East';
+elseif ?
+    nodePosition = 'South';
+elseif ?
+    nodePosition = 'North';
+else
+    nodePosition = 'inner Node';
+end
+
+
+
+
+
+% Calculate the equation for the correct node position
+switch nodePosition
+    
+    case 'inner Node'
+        
+        
+% Nomenclature:
+%
+%    NW(i-1,j-1)   Nw -  N(i-1,j) -  Ne     NE(i-1,j+1)
+%
+%                 |                 |
+%
+%       nW - - - - nw ------ n ------ ne - - - nE
+%                 |                 |
+%       |         |        |        |       |
+%                 |                 |
+%   W(i, j-1) - - w - - P (i,j) - - e - -  E (i,j+1)
+%                 |                 |
+%       |         |        |        |       |
+%                 |                 |
+%      sW - - - - sw ------ s ------ se - - - sE
+%
+%                 |                 |
+%
+%   SW(i+1,j-1)   Sw  -  S(i+1,j)  - Se      SE(i+1,j+1)
+%
+% Indexing of stecil: 
+
+%    D_4 - D_1 - D2
+%     |     |     | 
+%    D_3 - D_0 - D3
+%     |     |     | 
+%    D_2 -  D1 - D4
+        
+% Principal node coordinates
+        y_NW = Y(i-1,j-1);   x_NW = X(i-1,j-1);
+        y_N  = 
+     
+% Auxiliary node coordinates    
+        y_Nw = (y_NW + y_N)/2;  x_Nw = (x_NW + x_N)/2; %
+        y_Ne = 
+        
+        y_se = (y_Se + y_e)/2;  x_se = (x_Se + x_e)/2;
+        y_sw = 
+        
+
+% Inter node distances
+        % Around s 
+        
+        dy_Sw_Se = 
+  
+        % Around e
+
+        % Around n        
+        
+        % Around w        
+
+        % Around P
+
+% Areas
+        
+        S_P                 = 
+        
+        
+        
+        %$$$$$$$$$$$$$$$$$$$$$$ Stecil $$$$$$$$$$$$$$$$$$$
+
+        build_inner
+
+        %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+              
+        % P
+        stecil(index(i, j)) = D0;
+        % East
+        
+        % West
+
+        % South
+        
+        % North
+        
+        % NW
+        
+        % NE
+        
+        % SW
+        
+        % SE
+        
+        
+    case 'South'
+    
+  % case ...
+        
+end
+
+
+

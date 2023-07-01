@@ -38,7 +38,7 @@ dimY = 50;
 TD.ambient = 298;
 TD.htc = 50;
 
-TD.flux = 40000;
+TD.flux = 3.5134e+07;
 
 
 % Shape of the Cooling Fin
