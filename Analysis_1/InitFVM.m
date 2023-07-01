@@ -29,21 +29,16 @@ h2 = 4;
 l = 5;
 
 % Number of degrees of freedom (number of nodes per length)
-
 dimX = 50;
 dimY = 50;
 
-
-% Parameter for Conjugated Heat Transfer (For Session 04)
-alpha = 5;
-Tinf = 90;
 
 % Values for Dirichlet BC
 
 TD.ambient = 298;
 TD.htc = 50;
 
-TD.flux = 40000;
+TD.flux = 3.5134e+07;
 
 
 % Shape of the Cooling Fin

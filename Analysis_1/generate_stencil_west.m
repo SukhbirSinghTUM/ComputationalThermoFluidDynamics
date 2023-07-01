@@ -1,5 +1,9 @@
 
+
 % This code generates a 2-D FVM stencil for inner nodes.
+
+% This code generates a 2-D FVM stencil for western nodes.
+
 % The faces of the cells do not have to be aligned to a 
 % cartesian grid on any side, i.e. a cell can be any convex quadrilateral
 
@@ -75,8 +79,8 @@ dTdy_eta_s=  -(dx_P_S*T_s + dx_S_Se*T_eta_s + dx_Se_e*T_se + dx_e_P*T_eta) /S_et
 dTdx_e=  (dy_s_sE*T_se + dy_sE_nE*T_E + dy_nE_n*T_ne + dy_n_s*T_P) /S_e; %
 dTdy_e=  -(dx_s_sE*T_se + dx_sE_nE*T_E + dx_nE_n*T_ne + dx_n_s*T_P) /S_e; %
 
-dTdx_eta_n=  (dy_P_e*T_eta + dy_e_Ne*T_ne + dy_Ne_N*T_eta_N + dy_N_P*T_n) /S_eta_n; %
-dTdy_eta_n=  -(dx_P_e*T_eta + dx_e_Ne*T_ne + dx_Ne_N*T_eta_N + dx_N_P*T_n) /S_eta_n; %
+dTdx_eta_n=  (dy_P_e*T_eta + dy_e_Ne*T_ne + dy_Ne_N*T_eta_n + dy_N_P*T_n) /S_eta_n; %
+dTdy_eta_n=  -(dx_P_e*T_eta + dx_e_Ne*T_ne + dx_Ne_N*T_eta_n + dx_N_P*T_n) /S_eta_n; %
 
 
 % Build hole stecil acounting for quadratic lambda like in Helmholtz 

@@ -1,4 +1,4 @@
-function [stencil, B] = stamp(i, j, X, Y, B, TD)
+function [stencil, B] = stamp(i, j, X, Y, B, TD, Q)
 %stencil calculate the linear equation for node (i, j)
 
 %  input:
@@ -10,7 +10,6 @@ function [stencil, B] = stamp(i, j, X, Y, B, TD)
 %    alpha     alpha
 %    Tinf      Tinf for Robin BC
 %    boundary  defines the boundary conditions
-%    verbose   verbositiy level
 %
 %  output:
 %    stencil     linear equation for node (i,j)
@@ -18,7 +17,6 @@ function [stencil, B] = stamp(i, j, X, Y, B, TD)
 
 
 % Init
-
 n = size(X, 1);
 m = size(X, 2);
 stencil = zeros(1, n*m);
@@ -152,7 +150,32 @@ switch nodePosition
         
         %$$$$$$$$$$$$$$$$$$$$$$ Stencil $$$$$$$$$$$$$$$$$$$
 
-        build_inner
+        % East 
+        D3=((dx_se_ne*(dx_nE_n/4 + dx_s_sE/4 + dx_sE_nE))/S_e + (dy_se_ne*(dy_nE_n/4 + dy_s_sE/4 + dy_sE_nE))/S_e + (dx_e_Ne*dx_ne_nw)/(4*S_n) + (dx_Se_e*dx_sw_se)/(4*S_s) + (dy_e_Ne*dy_ne_nw)/(4*S_n) + (dy_Se_e*dy_sw_se)/(4*S_s))/S_P; 
+        
+        % West 
+        D_3=((dx_nw_sw*(dx_n_nW/4 + dx_sW_s/4 + dx_nW_sW))/S_w + (dy_nw_sw*(dy_n_nW/4 + dy_sW_s/4 + dy_nW_sW))/S_w + (dx_Nw_w*dx_ne_nw)/(4*S_n) + (dx_w_Sw*dx_sw_se)/(4*S_s) + (dy_Nw_w*dy_ne_nw)/(4*S_n) + (dy_w_Sw*dy_sw_se)/(4*S_s))/S_P; 
+        
+        % South 
+        D1=((dx_sw_se*(dx_Se_e/4 + dx_w_Sw/4 + dx_Sw_Se))/S_s + (dy_sw_se*(dy_Se_e/4 + dy_w_Sw/4 + dy_Sw_Se))/S_s + (dx_s_sE*dx_se_ne)/(4*S_e) + (dx_sW_s*dx_nw_sw)/(4*S_w) + (dy_s_sE*dy_se_ne)/(4*S_e) + (dy_sW_s*dy_nw_sw)/(4*S_w))/S_P; 
+        
+        % North 
+        D_1=((dx_ne_nw*(dx_e_Ne/4 + dx_Nw_w/4 + dx_Ne_Nw))/S_n + (dy_ne_nw*(dy_e_Ne/4 + dy_Nw_w/4 + dy_Ne_Nw))/S_n + (dx_nE_n*dx_se_ne)/(4*S_e) + (dx_n_nW*dx_nw_sw)/(4*S_w) + (dy_nE_n*dy_se_ne)/(4*S_e) + (dy_n_nW*dy_nw_sw)/(4*S_w))/S_P; 
+        
+        % NW 
+        D_4=((dx_Nw_w*dx_ne_nw)/(4*S_n) + (dx_n_nW*dx_nw_sw)/(4*S_w) + (dy_Nw_w*dy_ne_nw)/(4*S_n) + (dy_n_nW*dy_nw_sw)/(4*S_w))/S_P; 
+        
+        % NE 
+        D2=((dx_nE_n*dx_se_ne)/(4*S_e) + (dx_e_Ne*dx_ne_nw)/(4*S_n) + (dy_nE_n*dy_se_ne)/(4*S_e) + (dy_e_Ne*dy_ne_nw)/(4*S_n))/S_P; 
+        
+        % SW 
+        D_2=((dx_w_Sw*dx_sw_se)/(4*S_s) + (dx_sW_s*dx_nw_sw)/(4*S_w) + (dy_w_Sw*dy_sw_se)/(4*S_s) + (dy_sW_s*dy_nw_sw)/(4*S_w))/S_P; 
+        
+        % SE 
+        D4=((dx_s_sE*dx_se_ne)/(4*S_e) + (dx_Se_e*dx_sw_se)/(4*S_s) + (dy_s_sE*dy_se_ne)/(4*S_e) + (dy_Se_e*dy_sw_se)/(4*S_s))/S_P; 
+        
+        % P 
+        D0=((dx_se_ne*(dx_n_s + dx_nE_n/4 + dx_s_sE/4))/S_e + (dx_ne_nw*(dx_w_e + dx_e_Ne/4 + dx_Nw_w/4))/S_n + (dx_sw_se*(dx_e_w + dx_Se_e/4 + dx_w_Sw/4))/S_s + (dx_nw_sw*(dx_s_n + dx_n_nW/4 + dx_sW_s/4))/S_w + (dy_se_ne*(dy_n_s + dy_nE_n/4 + dy_s_sE/4))/S_e + (dy_ne_nw*(dy_w_e + dy_e_Ne/4 + dy_Nw_w/4))/S_n + (dy_sw_se*(dy_e_w + dy_Se_e/4 + dy_w_Sw/4))/S_s + (dy_nw_sw*(dy_s_n + dy_n_nW/4 + dy_sW_s/4))/S_w)/S_P;
 
         %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
               
@@ -176,7 +199,6 @@ switch nodePosition
         stencil(index(i+1, j+1)) = D4;
         
     case 'South'
-
         % Principal node coordinates
         y_NW = Y(i-1,j-1);   x_NW = X(i-1,j-1);
         y_N  = Y(i-1,j);     x_N = X(i-1,j); 
@@ -230,7 +252,23 @@ switch nodePosition
 
         %$$$$$$$$$$$$$$$$$$$$$$ Stencil $$$$$$$$$$$$$$$$$$$
 
-        build_south
+        % P 
+        D0=((dx_e_ne*(dx_P_E/2 + (3*dx_n_P)/4 + dx_nE_n/4))/S_eta_e + (dx_nw_w*(dx_W_P/2 + (3*dx_P_n)/4 + dx_n_nW/4))/S_eta_w + (dy_e_ne*(dy_P_E/2 + (3*dy_n_P)/4 + dy_nE_n/4))/S_eta_e + (dy_nw_w*(dy_W_P/2 + (3*dy_P_n)/4 + dy_n_nW/4))/S_eta_w + (dx_ne_nw*(dx_w_e + dx_e_Ne/4 + dx_Nw_w/4))/S_n + (dy_ne_nw*(dy_w_e + dy_e_Ne/4 + dy_Nw_w/4))/S_n)/S_eta; 
+        
+        % East 
+        D3=((dx_e_ne*(dx_P_E/2 + (3*dx_E_nE)/4 + dx_nE_n/4))/S_eta_e + (dy_e_ne*(dy_P_E/2 + (3*dy_E_nE)/4 + dy_nE_n/4))/S_eta_e + (dx_e_Ne*dx_ne_nw)/(4*S_n) + (dy_e_Ne*dy_ne_nw)/(4*S_n))/S_eta; 
+        
+        % NE 
+        D2=((dx_e_ne*(dx_E_nE/4 + dx_nE_n/4))/S_eta_e + (dy_e_ne*(dy_E_nE/4 + dy_nE_n/4))/S_eta_e + (dx_e_Ne*dx_ne_nw)/(4*S_n) + (dy_e_Ne*dy_ne_nw)/(4*S_n))/S_eta; 
+        
+        % North 
+        D_1=((dx_e_ne*(dx_n_P/4 + dx_nE_n/4))/S_eta_e + (dx_nw_w*(dx_P_n/4 + dx_n_nW/4))/S_eta_w + (dy_e_ne*(dy_n_P/4 + dy_nE_n/4))/S_eta_e + (dy_nw_w*(dy_P_n/4 + dy_n_nW/4))/S_eta_w + (dx_ne_nw*(dx_e_Ne/4 + dx_Nw_w/4 + dx_Ne_Nw))/S_n + (dy_ne_nw*(dy_e_Ne/4 + dy_Nw_w/4 + dy_Ne_Nw))/S_n)/S_eta; 
+        
+        % NW 
+        D_4=((dx_nw_w*(dx_nW_W/4 + dx_n_nW/4))/S_eta_w + (dy_nw_w*(dy_nW_W/4 + dy_n_nW/4))/S_eta_w + (dx_Nw_w*dx_ne_nw)/(4*S_n) + (dy_Nw_w*dy_ne_nw)/(4*S_n))/S_eta; 
+        
+        % West 
+        D_3=((dx_nw_w*(dx_W_P/2 + (3*dx_nW_W)/4 + dx_n_nW/4))/S_eta_w + (dy_nw_w*(dy_W_P/2 + (3*dy_nW_W)/4 + dy_n_nW/4))/S_eta_w + (dx_Nw_w*dx_ne_nw)/(4*S_n) + (dy_Nw_w*dy_ne_nw)/(4*S_n))/S_eta; 
 
         %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
               
@@ -248,9 +286,11 @@ switch nodePosition
         stencil(index(i-1, j+1)) = D2;
 
         % Boundary Condition
-        B(index(i,j)) = -TD.flux*norm([dy_w_e dx_w_e])/S_eta;
+        B(index(i,j)) = -Q(1,j)*norm([dy_w_e dx_w_e])/S_eta;
+        
 
     case 'North'
+        
 
         % Principal node coordinates
         y_E = Y(i,j+1);      x_E = X(i,j+1);
@@ -306,7 +346,24 @@ switch nodePosition
 
         %$$$$$$$$$$$$$$$$$$$$$$ Stencil $$$$$$$$$$$$$$$$$$$
 
-        build_north
+        % P 
+        D0=((dx_e_se*(dx_P_E/2 + (3*dx_s_P)/4 + dx_sE_s/4))/S_eta_e + (dx_sw_w*(dx_W_P/2 + (3*dx_P_s)/4 + dx_s_sW/4))/S_eta_w + (dy_e_se*(dy_P_E/2 + (3*dy_s_P)/4 + dy_sE_s/4))/S_eta_e + (dy_sw_w*(dy_W_P/2 + (3*dy_P_s)/4 + dy_s_sW/4))/S_eta_w + (dx_se_sw*(dx_w_e + dx_e_Se/4 + dx_Sw_w/4))/S_s + (dy_se_sw*(dy_w_e + dy_e_Se/4 + dy_Sw_w/4))/S_s)/S_eta; 
+        
+        % East 
+        D3=((dx_e_se*(dx_P_E/2 + (3*dx_E_sE)/4 + dx_sE_s/4))/S_eta_e + (dy_e_se*(dy_P_E/2 + (3*dy_E_sE)/4 + dy_sE_s/4))/S_eta_e + (dx_e_Se*dx_se_sw)/(4*S_s) + (dy_e_Se*dy_se_sw)/(4*S_s))/S_eta; 
+        
+        % SE 
+        D4=((dx_e_se*(dx_E_sE/4 + dx_sE_s/4))/S_eta_e + (dy_e_se*(dy_E_sE/4 + dy_sE_s/4))/S_eta_e + (dx_e_Se*dx_se_sw)/(4*S_s) + (dy_e_Se*dy_se_sw)/(4*S_s))/S_eta; 
+        
+        % South 
+        D1=((dx_e_se*(dx_s_P/4 + dx_sE_s/4))/S_eta_e + (dx_sw_w*(dx_P_s/4 + dx_s_sW/4))/S_eta_w + (dy_e_se*(dy_s_P/4 + dy_sE_s/4))/S_eta_e + (dy_sw_w*(dy_P_s/4 + dy_s_sW/4))/S_eta_w + (dx_se_sw*(dx_e_Se/4 + dx_Sw_w/4 + dx_Se_Sw))/S_s + (dy_se_sw*(dy_e_Se/4 + dy_Sw_w/4 + dy_Se_Sw))/S_s)/S_eta; 
+        
+        % SW 
+        D_2=((dx_sw_w*(dx_sW_W/4 + dx_s_sW/4))/S_eta_w + (dy_sw_w*(dy_sW_W/4 + dy_s_sW/4))/S_eta_w + (dx_Sw_w*dx_se_sw)/(4*S_s) + (dy_Sw_w*dy_se_sw)/(4*S_s))/S_eta; 
+        
+        % West 
+        D_3=((dx_sw_w*(dx_W_P/2 + (3*dx_sW_W)/4 + dx_s_sW/4))/S_eta_w + (dy_sw_w*(dy_W_P/2 + (3*dy_sW_W)/4 + dy_s_sW/4))/S_eta_w + (dx_Sw_w*dx_se_sw)/(4*S_s) + (dy_Sw_w*dy_se_sw)/(4*S_s))/S_eta; 
+
 
         %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
@@ -381,7 +438,23 @@ switch nodePosition
 
         %$$$$$$$$$$$$$$$$$$$$$$ Stencil $$$$$$$$$$$$$$$$$$$
 
-        build_east
+        % P 
+        D0=((dx_n_nw*(dx_P_N/2 + (3*dx_w_P)/4 + dx_Nw_w/4))/S_n_eta + (dx_sw_s*(dx_S_P/2 + (3*dx_P_w)/4 + dx_w_Sw/4))/S_s_eta + (dy_n_nw*(dy_P_N/2 + (3*dy_w_P)/4 + dy_Nw_w/4))/S_n_eta + (dy_sw_s*(dy_S_P/2 + (3*dy_P_w)/4 + dy_w_Sw/4))/S_s_eta + (dx_nw_sw*(dx_s_n + dx_n_nW/4 + dx_sW_s/4))/S_w + (dy_nw_sw*(dy_s_n + dy_n_nW/4 + dy_sW_s/4))/S_w)/S_eta; 
+        
+        % North 
+        D_1=((dx_n_nw*(dx_P_N/2 + (3*dx_N_Nw)/4 + dx_Nw_w/4))/S_n_eta + (dy_n_nw*(dy_P_N/2 + (3*dy_N_Nw)/4 + dy_Nw_w/4))/S_n_eta + (dx_n_nW*dx_nw_sw)/(4*S_w) + (dy_n_nW*dy_nw_sw)/(4*S_w))/S_eta; 
+        
+        % NW 
+        D_4=((dx_n_nw*(dx_N_Nw/4 + dx_Nw_w/4))/S_n_eta + (dy_n_nw*(dy_N_Nw/4 + dy_Nw_w/4))/S_n_eta + (dx_n_nW*dx_nw_sw)/(4*S_w) + (dy_n_nW*dy_nw_sw)/(4*S_w))/S_eta; 
+        
+        % West 
+        D_3=((dx_n_nw*(dx_w_P/4 + dx_Nw_w/4))/S_n_eta + (dx_sw_s*(dx_P_w/4 + dx_w_Sw/4))/S_s_eta + (dy_n_nw*(dy_w_P/4 + dy_Nw_w/4))/S_n_eta + (dy_sw_s*(dy_P_w/4 + dy_w_Sw/4))/S_s_eta + (dx_nw_sw*(dx_n_nW/4 + dx_sW_s/4 + dx_nW_sW))/S_w + (dy_nw_sw*(dy_n_nW/4 + dy_sW_s/4 + dy_nW_sW))/S_w)/S_eta; 
+        
+        % SW 
+        D_2=((dx_sw_s*(dx_Sw_S/4 + dx_w_Sw/4))/S_s_eta + (dy_sw_s*(dy_Sw_S/4 + dy_w_Sw/4))/S_s_eta + (dx_sW_s*dx_nw_sw)/(4*S_w) + (dy_sW_s*dy_nw_sw)/(4*S_w))/S_eta; 
+        
+        % South 
+        D1=((dx_sw_s*(dx_S_P/2 + (3*dx_Sw_S)/4 + dx_w_Sw/4))/S_s_eta + (dy_sw_s*(dy_S_P/2 + (3*dy_Sw_S)/4 + dy_w_Sw/4))/S_s_eta + (dx_sW_s*dx_nw_sw)/(4*S_w) + (dy_sW_s*dy_nw_sw)/(4*S_w))/S_eta; 
 
         %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
@@ -453,8 +526,24 @@ switch nodePosition
         S_eta_n = abs((x_Ne*y_e - x_e*y_Ne)+(x_e*y_P - x_P*y_e)+(x_P*y_N - x_N*y_P)+(x_N*y_Ne - x_Ne*y_N))/2;
 
         %$$$$$$$$$$$$$$$$$$$$$$ Stencil $$$$$$$$$$$$$$$$$$$
-
-        build_west
+        
+        % East 
+        D3=((dx_ne_n*(dx_P_e/4 + dx_Ne_N/8 + dx_e_Ne/4))/S_eta_n + (dx_s_se*(dx_e_P/4 + dx_S_Se/8 + dx_Se_e/4))/S_eta_s + (dy_ne_n*(dy_P_e/4 + dy_Ne_N/8 + dy_e_Ne/4))/S_eta_n + (dy_s_se*(dy_e_P/4 + dy_S_Se/8 + dy_Se_e/4))/S_eta_s + (dx_se_ne*(dx_nE_n/4 + dx_s_sE/4 + dx_sE_nE))/S_e + (dy_se_ne*(dy_nE_n/4 + dy_s_sE/4 + dy_sE_nE))/S_e)/S_eta; 
+        
+        % South 
+        D1=((dx_s_se*(dx_P_S/2 + (3*dx_S_Se)/8 + dx_Se_e/4))/S_eta_s + (dy_s_se*(dy_P_S/2 + (3*dy_S_Se)/8 + dy_Se_e/4))/S_eta_s + (dx_s_sE*dx_se_ne)/(4*S_e) + (dy_s_sE*dy_se_ne)/(4*S_e))/S_eta; 
+        
+        % North 
+        D_1=((dx_ne_n*(dx_N_P/2 + (3*dx_Ne_N)/8 + dx_e_Ne/4))/S_eta_n + (dy_ne_n*(dy_N_P/2 + (3*dy_Ne_N)/8 + dy_e_Ne/4))/S_eta_n + (dx_nE_n*dx_se_ne)/(4*S_e) + (dy_nE_n*dy_se_ne)/(4*S_e))/S_eta; 
+        
+        % NE 
+        D2=((dx_ne_n*(dx_Ne_N/8 + dx_e_Ne/4))/S_eta_n + (dy_ne_n*(dy_Ne_N/8 + dy_e_Ne/4))/S_eta_n + (dx_nE_n*dx_se_ne)/(4*S_e) + (dy_nE_n*dy_se_ne)/(4*S_e))/S_eta; 
+        
+        % SE 
+        D4=((dx_s_se*(dx_S_Se/8 + dx_Se_e/4))/S_eta_s + (dy_s_se*(dy_S_Se/8 + dy_Se_e/4))/S_eta_s + (dx_s_sE*dx_se_ne)/(4*S_e) + (dy_s_sE*dy_se_ne)/(4*S_e))/S_eta; 
+        
+        % P 
+        D0=((dx_se_ne*(dx_n_s + dx_nE_n/4 + dx_s_sE/4))/S_e + (dy_se_ne*(dy_n_s + dy_nE_n/4 + dy_s_sE/4))/S_e + (dx_ne_n*(dx_N_P/2 + (3*dx_P_e)/4 + (3*dx_Ne_N)/8 + dx_e_Ne/4))/S_eta_n + (dx_s_se*(dx_P_S/2 + (3*dx_e_P)/4 + (3*dx_S_Se)/8 + dx_Se_e/4))/S_eta_s + (dy_ne_n*(dy_N_P/2 + (3*dy_P_e)/4 + (3*dy_Ne_N)/8 + dy_e_Ne/4))/S_eta_n + (dy_s_se*(dy_P_S/2 + (3*dy_e_P)/4 + (3*dy_S_Se)/8 + dy_Se_e/4))/S_eta_s)/S_eta; 
 
         %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
               
