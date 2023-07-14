@@ -23,23 +23,18 @@
 
 shape = 'linear';  % 'linear' or 'quadratic'
 
-h1 = 4;
-hm = 4;            % only necessary for quatratic option 
-h2 = 4;
-l = 5;
+h1 = 0.6;
+h2 = 0.6;
+l = 0.1;
 
 % Number of degrees of freedom (number of nodes per length)
 dimX = 50;
 dimY = 50;
 
-
 % Values for Dirichlet BC
 
 TD.ambient = 298;
-TD.htc = 50;
-
-TD.flux = 3.5134e+07;
-
+TD.htc = 100;
 
 % Shape of the Cooling Fin
 

@@ -1,4 +1,4 @@
-function T = solveFVM(M, X, Y, TD, Q)
+function u = solveFVM_velocity(M, X, Y)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -26,14 +26,13 @@ index = @(ii, jj) ii + (jj-1) * size(M, 1);
 % B is the right-hand side of the linear system
 B = zeros(size(M,1)*size(M,2),1);
 
-
 % set up the system matrix A
 A = zeros(size(M, 1)*size(M, 2),size(M, 1)*size(M, 2));
 
 for i = 1:size(M, 1)
     for j = 1:size(M, 2)
         % Fill the system matrix and the right-hand side for node (i,j)
-        [A(index(i,j), :), B] =  stamp(i, j, X, Y, B, TD, Q);     
+        [A(index(i,j), :), B] =  stamp_velocity_mex(i, j, X, Y, B);     
     end
 end
 
@@ -41,7 +40,8 @@ end
 % solve the linear system
 A = sparse(A);
 
-T = A\B;
+u = A\B;
+u = reshape(u,size(M,1),size(M,2));
 
 
 

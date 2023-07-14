@@ -26,7 +26,7 @@ M = zeros(dimY,dimX);
 Tw = 1000.*ones(1,size(M,2));
 
 
-eps = 0.1;                           % For stopping criteria
+eps = 1;                             % For stopping criteria
 idx = 1;                             % index number for the coming loop
 
 max_Tw_h = zeros(1,100);             % Storing the max value of temperature at wall on hot side       
@@ -36,7 +36,7 @@ fprintf('Iteration      |       Residual\n');
 for i = 1:100
 
     Tw_h = Tw;                                   % For the purpose of comparing the hotter and colder wall sides
-    Q = 1e-5.*heat_flux(10*A_t, A_t, Tw_h);      % Heat flux at every southern node except corners
+    Q = 1e-4.*heat_flux(10*A_t, A_t, Tw_h);      % Heat flux at every southern node except corners
     
     T = solveFVM(M, X, Y, TD, Q);
     T = reshape(T,dimY,dimX);
@@ -80,10 +80,3 @@ xlabel('x')
 ylabel('y')
 colorbar
 
-figure(3)
-contourf(X,Y,T,30)
-colormap("turbo")
-title('Temperature distribution')
-xlabel('x')
-ylabel('y')
-colorbar

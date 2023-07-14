@@ -1,4 +1,4 @@
-function T = solveFVM(M, X, Y, TD, Q)
+function [T, Q_solid_flow, Q_solid1_SOLID] = solveFVM( solid_typeM, X, Y, Tw_solid_flow_s, Q1, Tw_west, Q2 )
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -26,14 +26,13 @@ index = @(ii, jj) ii + (jj-1) * size(M, 1);
 % B is the right-hand side of the linear system
 B = zeros(size(M,1)*size(M,2),1);
 
-
 % set up the system matrix A
 A = zeros(size(M, 1)*size(M, 2),size(M, 1)*size(M, 2));
 
 for i = 1:size(M, 1)
     for j = 1:size(M, 2)
         % Fill the system matrix and the right-hand side for node (i,j)
-        [A(index(i,j), :), B] =  stamp(i, j, X, Y, B, TD, Q);     
+        [A(index(i,j), :), B] =  stamp(i, j, X, Y, B, Tw_solid_flow_s, Q, solid_type, Tw_west);     
     end
 end
 
@@ -42,6 +41,12 @@ end
 A = sparse(A);
 
 T = A\B;
+T= reshape(T,size(M,1),size(M,2));
+if (nargout>1)
+    k_solid = 8;              % Thermal conductivity of nickel alloys = 300W/mK
+    Q_solid_flow = abs(k_solid.*(T(1,:)- T(2,:))./(Y(1,:)-Y(2,:)));
+    Q_solid1_SOLID = abs(k_solid.*(T(:,1)- T(:,2))./(X(:,1)-X(:,2)));
+end 
 
 
 
