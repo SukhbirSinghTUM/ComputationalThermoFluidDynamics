@@ -44,13 +44,13 @@ T = A\B;
 T= reshape(T,size(M,1),size(M,2));
 
 if strcmp(solid_type,"solid1")
-    k_solid = 1e-01;              % Thermal conductivity of nickel alloys = 300W/mK
+    k_solid = 0.1;              % Thermal conductivity of nickel alloys = 300W/mK
     Q_out1 = -(k_solid.*(T(1,:)- T(2,:))./(Y(1,:)-Y(2,:)));
     Q_out2 = -(k_solid.*(T(:,1)- T(:,2))./(X(:,1)-X(:,2)));
 end 
 
 if strcmp(solid_type,"solid2")
-    k_solid = 1e-01;              % Thermal conductivity of nickel alloys = 300W/mK
+    k_solid = 0.1;              % Thermal conductivity of nickel alloys = 300W/mK
     Q_out1 = [];
     Q_out2 = -(k_solid.*(T(1,1)- T(1,2))./(X(:,1)-X(:,2)));
 end 

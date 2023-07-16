@@ -1,13 +1,13 @@
-% clc
-% clear 
-% close all
+clc
+clear 
+close all
 
 %% Initialize variables
 Init_flow
 InitFVM
 
-dimX = 50;
-dimY = 50;
+dimX = 30;
+dimY = 30;
 
 % Physical properties of nozzle
 D_t = 0.15;                 % Throat Diameter: 15cm 
@@ -37,27 +37,40 @@ X_SOLID([size(M_solid2,1), size(M_solid2,1)+size(M_flow,1)],:) = [];
 X_SOLID = flip(X_SOLID,2);
 M_SOLID = zeros(size(Y_SOLID));
 
+
+% [X_solid1, Y_solid1] = setUpMesh(M_solid1, l_solid1, formfunction_solid1);
+% [X_solid2, Y_solid2] = setUpMesh(M_solid1, l_solid1, formfunction_solid1);
+% [X_flow, Y_flow] = setUpMesh(M_flow, l_flow, formfunction_flow);
+% Y_flow = Y_flow + Y_solid1(1,:);
+% Y_solid2 = Y_solid2 + Y_flow(1,:);
+% X_SOLID = [X_solid2; X_flow; X_solid1] - X_solid1(1,end);
+% X_SOLID([size(M_solid2,1), size(M_solid2,1)+size(M_flow,1)],:) = [];
+
+% Y_SOLID = [Y_solid2; Y_flow; Y_solid1];
+% Y_SOLID([size(M_solid2,1), size(M_solid2,1)+size(M_flow,1)],:) = [];
+% M_SOLID = zeros(size(Y_SOLID));
+
 %% Solving velocity part of flow
 u = solveFVM_velocity(M_flow, X_flow, Y_flow);
 
 %% Developing Temperature Profile for flow
-% T_prev = 298.*ones(dimY,dimX);
+T_prev = 100*ones(dimY,dimX);
 
 %% Iterating 
 
 % Initial guess for Tw_gas_solid wall temperature (ignoring corners)
-Tw_gas = 0.*ones(1,size(M_solid1,2)+size(M_SOLID,2));
+Tw_gas = 1000.*ones(1,size(M_solid1,2)+size(M_SOLID,2));
 Tw_gas_solid1 = Tw_gas(1,end - size(M_solid1,2) + 1:end);
 Tw_gas_SOLID = Tw_gas(1, 1:size(M_SOLID,2));
 
 % Initial guess for Tw_solid_flow wall temperature
-Tw_solid1_flow = 0.*ones(1,size(M_flow,2));
+Tw_solid1_flow = 900.*ones(1,size(M_flow,2));
 
 % Initial guess for Tw_solid_flow wall temperature
-Tw_flow_solid2 = 0.*ones(1,size(M_flow,2));
+Tw_flow_solid2 = 500.*ones(1,size(M_flow,2));
 
 % Initial guess for Tw_SOLID_right wall temperature
-Tw_SOLID = 0.*ones(1,size(M_SOLID,1))';
+Tw_SOLID = 900.*ones(1,size(M_SOLID,1))';
 
 eps = 1;                           % For stopping criteria
 
@@ -74,8 +87,7 @@ fprintf('_______________________________________________________________________
 fprintf('                                Residuals                                 \n');
 fprintf('__________________________________________________________________________\n\n');
 fprintf('Iteration\t|\tGas-Solid1\t|\tSolid1_Flow\t|\tFlow-Solid2\t|\tSOLID-right\n');
-f1 = figure(1);
-f1.WindowState = 'maximized';
+figure(1)
 hold on;
 
 residuals = [];
@@ -198,7 +210,6 @@ Y_solid2(end,:)=[];
 T_solid2(end,:)=[];
 Y_flow(end,:)=[];
 X_flow(end,:)=[];
-T_prev = T_flow;
 T_flow(end,:)=[];
 
 Y_right = [Y_solid2; Y_flow; Y_solid1];
@@ -209,8 +220,7 @@ X_all = [X_SOLID X_right];
 T_all = [T_SOLID T_right];
 
 
-f2 = figure(2);
-f2.WindowState = 'maximized';
+figure(2)
 surf(X_all,Y_all,T_all,'FaceColor','interp','EdgeColor','none');
 view(0,90);
 ylim([min(Y_all,[],'all') max(Y_all,[],'all')]);
@@ -222,16 +232,16 @@ colorbar;
 hold on
 plot3( [X_SOLID(1,1:end) (X_SOLID(1:end,end))' flip(X_SOLID(end,1:end)) flip((X_SOLID(1:end,1))')],...
     [Y_SOLID(1,1:end) (Y_SOLID(1:end,end))' flip(Y_SOLID(end,1:end)) flip((Y_SOLID(1:end,1))')],...
-    5000.*ones(1,2*(size(X_SOLID,1)+size(X_SOLID,2))),'color','r','linewidth',1.5)
+    5000.*ones(1,2*(size(X_SOLID,1)+size(X_SOLID,2))),'color','r','linewidth',1)
 plot3( [X_solid1(1,1:end) (X_solid1(1:end,end))' flip(X_solid1(end,1:end)) flip((X_solid1(1:end,1))')],...
     [Y_solid1(1,1:end) (Y_solid1(1:end,end))' flip(Y_solid1(end,1:end)) flip((Y_solid1(1:end,1))')],...
-    5000.*ones(1,2*(size(X_solid1,1)+size(X_solid1,2))),'color','r','linewidth',1.5)
-plot3( [X_flow(1,1:end) (X_flow(1:end,end))' X_solid1(1,end)],...
-    [Y_flow(1,1:end) (Y_flow(1:end,end))' Y_solid1(1,end)],...
-    5000.*ones(1,(size(X_flow,1)+size(X_flow,2))+1),'color','r','linewidth',1.5)
-plot3( [X_solid2(1,1:end) (X_solid2(1:end,end))' X_flow(1,end)],...
-    [Y_solid2(1,1:end) (Y_solid2(1:end,end))' Y_flow(1,end)],...
-    5000.*ones(1,(size(X_solid2,1)+size(X_solid2,2))+1),'color','r','linewidth',1.5)
+    5000.*ones(1,2*(size(X_solid1,1)+size(X_solid1,2))),'color','r','linewidth',1)
+plot3( [X_flow(1,1:end) (X_flow(1:end,end))'],...
+    [Y_flow(1,1:end) (Y_flow(1:end,end))' ],...
+    5000.*ones(1,(size(X_flow,1)+size(X_flow,2))),'color','r','linewidth',1)
+plot3( [X_solid2(1,1:end) (X_solid2(1:end,end))' flip(X_solid2(end,1:end)) flip((X_solid2(1:end,1))')],...
+    [Y_solid2(1,1:end) (Y_solid2(1:end,end))' flip(Y_solid2(end,1:end)) flip((Y_solid2(1:end,1))')],...
+    5000.*ones(1,2*(size(X_solid2,1)+size(X_solid2,2))),'color','r','linewidth',1)
 
 
 
