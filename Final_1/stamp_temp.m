@@ -25,7 +25,7 @@ index=@(ii, jj) ii + (jj-1)*n;
 T_prev = reshape(T_prev,n*m,1);
 u = reshape(u,n*m,1);
 
-alpha = 0.1;                % Thermal diffusivity: alpha = 0.1m^2/s
+alpha = 1;                % Thermal diffusivity: alpha = 0.1m^2/s
 delta_x = 0.01;              % axial step = 1cm
 
 
@@ -396,24 +396,27 @@ switch nodePosition
 
     case 'NorthWest'
         stencil(index(i, j)) = 1;
-        stencil(index(i, j+1)) = -0.5;
-        stencil(index(i+1, j)) = -0.5;
+        stencil(index(i, j+1)) = -1;
+        stencil(index(i+1, j)) = -1;
+        stencil(index(i+1, j+1)) = 1;
 
     case 'NorthEast'
         stencil(index(i, j)) = 1;
-        stencil(index(i, j-1)) = -0.5;
-        stencil(index(i+1, j)) = -0.5;
+        stencil(index(i, j-1)) = -1;
+        stencil(index(i+1, j)) = -1;
+        stencil(index(i+1, j-1)) = 1;
 
     case 'SouthWest'
         stencil(index(i, j)) = 1;
-        stencil(index(i, j+1)) = -0.5;
-        stencil(index(i-1, j)) = -0.5;
+        stencil(index(i, j+1)) = -1;
+        stencil(index(i-1, j)) = -1;
+        stencil(index(i-1, j+1)) = 1;
 
     case 'SouthEast'
         stencil(index(i, j)) = 1;
-        stencil(index(i, j-1)) = -0.5;
-        stencil(index(i-1, j)) = -0.5;
-
+        stencil(index(i, j-1)) = -1;
+        stencil(index(i-1, j)) = -1;
+        stencil(index(i-1, j-1)) = 1;
         
 end
 

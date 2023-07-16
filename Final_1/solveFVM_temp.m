@@ -32,7 +32,7 @@ A = zeros(size(M, 1)*size(M, 2),size(M, 1)*size(M, 2));
 for i = 1:size(M, 1)
     for j = 1:size(M, 2)
         % Fill the system matrix and the right-hand side for node (i,j)
-        [A(index(i,j), :), B] =  stamp_temp_mex(i, j, X, Y, B, T_prev, u, Q, Tw_flow_solid2, Tw_SOLID_flow);     
+        [A(index(i,j), :), B] =  stamp_temp(i, j, X, Y, B, T_prev, u, Q, Tw_flow_solid2, Tw_SOLID_flow);     
     end
 end
 

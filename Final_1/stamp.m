@@ -583,23 +583,27 @@ switch nodePosition
   
     case 'NorthWest'
         stencil(index(i, j)) = 1;
-        stencil(index(i, j+1)) = -0.5;
-        stencil(index(i+1, j)) = -0.5;
+        stencil(index(i, j+1)) = -1;
+        stencil(index(i+1, j)) = -1;
+        stencil(index(i+1, j+1)) = 1;
 
     case 'NorthEast'
         stencil(index(i, j)) = 1;
-        stencil(index(i, j-1)) = -0.5;
-        stencil(index(i+1, j)) = -0.5;
+        stencil(index(i, j-1)) = -1;
+        stencil(index(i+1, j)) = -1;
+        stencil(index(i+1, j-1)) = 1;
 
     case 'SouthWest'
         stencil(index(i, j)) = 1;
-        stencil(index(i, j+1)) = -0.5;
-        stencil(index(i-1, j)) = -0.5;
+        stencil(index(i, j+1)) = -1;
+        stencil(index(i-1, j)) = -1;
+        stencil(index(i-1, j+1)) = 1;
 
     case 'SouthEast'
         stencil(index(i, j)) = 1;
-        stencil(index(i, j-1)) = -0.5;
-        stencil(index(i-1, j)) = -0.5;
+        stencil(index(i, j-1)) = -1;
+        stencil(index(i-1, j)) = -1;
+        stencil(index(i-1, j-1)) = 1;
 
         
 end

@@ -1,5 +1,6 @@
 function [X,Y] = setUpMesh(M, l, formfunction)
 
+
 dx = l/(size(M,2)-1);
 X = repmat(0:dx:l,size(M,1),1);
 

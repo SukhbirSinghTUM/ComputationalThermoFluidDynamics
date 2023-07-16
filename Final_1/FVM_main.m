@@ -16,21 +16,26 @@ A_t = pi*(D_t^2)/4;         % Throat Area
 M_solid1 = zeros(dimY,dimX);
 M_flow = zeros(dimY,dimX);
 M_solid2 = zeros(dimY,dimX);
-M_SOLID = zeros(size(M_solid1,1)+size(M_flow,1)+size(M_solid2,1),dimX);
-
 
 %% set up the mesh
 
 [X_solid1, Y_solid1] = setUpMesh(M_solid1, l_solid1, formfunction_solid1);
 [X_solid2, Y_solid2] = setUpMesh(M_solid1, l_solid1, formfunction_solid1);
 [X_flow, Y_flow] = setUpMesh(M_flow, l_flow, formfunction_flow);
-[X_SOLID, Y_SOLID] = setUpMesh(M_SOLID,l_solid1,formfunction_SOLID);
+Y_flow = Y_flow + Y_solid1(1,:);
+Y_solid2 = Y_solid2 + Y_flow(1,:);
+X_SOLID = [X_solid2; X_flow; X_solid1] - X_solid1(1,end);
+X_SOLID([size(M_solid2,1), size(M_solid2,1)+size(M_flow,1)],:) = [];
+
+Y_SOLID = [Y_solid2; Y_flow; Y_solid1];
+Y_SOLID([size(M_solid2,1), size(M_solid2,1)+size(M_flow,1)],:) = [];
+M_SOLID = zeros(size(Y_SOLID));
 
 %% Solving velocity part of flow
 u = solveFVM_velocity(M_flow, X_flow, Y_flow);
 
 %% Developing Temperature Profile for flow
-T_prev = 273*ones(dimY,dimX);
+T_prev = 100*ones(dimY,dimX);
 
 %% Iterating 
 
@@ -113,6 +118,7 @@ for iter = 1:100
     Tw_gas_SOLID_h = Tw_gas_SOLID;                                      
     Q_gas_SOLID = 1e-4.*heat_flux(10*A_t, A_t, Tw_gas_SOLID_h); 
     Q_east_SOLID = [Q_solid2_SOLID; Q_flow_SOLID; Q_solid1_SOLID];
+    Q_east_SOLID([size(M_solid2,1), size(M_solid2,1)+size(M_flow,1)],:) = [];
 
     solid_type = "SOLID";
     Tw_SOLID_left = Tw_SOLID;
@@ -180,16 +186,24 @@ end
 
 %% Plot for the temperature distribution
 
+X_solid2(end,:)=[];
+Y_solid2(end,:)=[];
+T_solid2(end,:)=[];
+Y_flow(end,:)=[];
+X_flow(end,:)=[];
+T_flow(end,:)=[];
 
-Y_flow = Y_flow + Y_solid1(1,1);
-Y_solid2 = Y_solid2 + Y_flow(1,1);
+Y_SOLID(:,end)=[];
+X_SOLID(:,end)=[];
+T_SOLID(:,end)=[];
 Y_right = [Y_solid2; Y_flow; Y_solid1];
 X_right = [X_solid2; X_flow; X_solid1];
 T_right = [T_solid2; T_flow; T_solid1];
 Y_all = [Y_SOLID Y_right];
-X_left = X_SOLID - X_right(1,end);
-X_all = [X_left X_right];
+X_all = [X_SOLID X_right];
 T_all = [T_SOLID T_right];
+
+
 figure(2)
 surf(X_all,Y_all,T_all,'FaceColor','interp','EdgeColor','none');
 view(0,90);
@@ -200,17 +214,17 @@ xlabel('x','FontSize',15);
 ylabel('y','FontSize',15);
 colorbar;
 hold on
-plot3( [X_left(end,1) X_left(end,end) X_left(1,end) X_left(1,1) X_left(end,1)],...
-    [Y_SOLID(end,1) Y_SOLID(end,end) Y_SOLID(1,end) Y_SOLID(1,1) Y_SOLID(end,1)],...
+plot3( [X_SOLID(end,1) X_right(end,1) X_right(1,1) X_SOLID(1,1) X_SOLID(end,1)],...
+    [Y_SOLID(end,1) Y_right(end,1) Y_right(1,1) Y_SOLID(1,1) Y_SOLID(end,1)],...
     [5000 5000 5000 5000 5000],'color','r','linewidth',1)
 plot3( [X_solid1(end,1) X_solid1(end,end) X_solid1(1,end) X_solid1(1,1) X_solid1(end,1)],...
     [Y_solid1(end,1) Y_solid1(end,end) Y_solid1(1,end) Y_solid1(1,1) Y_solid1(end,1)],...
     [5000 5000 5000 5000 5000],'color','r','linewidth',1)
-plot3( [X_flow(end,1) X_flow(end,end) X_flow(1,end) X_flow(1,1) X_flow(end,1)],...
-    [Y_flow(end,1) Y_flow(end,end) Y_flow(1,end) Y_flow(1,1) Y_flow(end,1)],...
+plot3( [X_solid1(1,1) X_solid1(1,end) X_flow(1,end) X_flow(1,1) X_flow(end,1)],...
+    [Y_solid1(1,1) Y_solid1(1,end) Y_flow(1,end) Y_flow(1,1) Y_flow(end,1)],...
     [5000 5000 5000 5000 5000],'color','r','linewidth',1)
-plot3( [X_solid2(end,1) X_solid2(end,end) X_solid2(1,end) X_solid2(1,1) X_solid2(end,1)],...
-    [Y_solid2(end,1) Y_solid2(end,end) Y_solid2(1,end) Y_solid2(1,1) Y_solid2(end,1)],...
+plot3( [X_flow(1,1) X_flow(1,end) X_solid2(1,end) X_solid2(1,1) X_solid2(end,1)],...
+    [Y_flow(1,1) Y_flow(1,end) Y_solid2(1,end) Y_solid2(1,1) Y_solid2(end,1)],...
     [5000 5000 5000 5000 5000],'color','r','linewidth',1)
 
 
