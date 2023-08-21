@@ -1,13 +1,10 @@
 clc
 clear 
 close all
-
+tic
 %% Initialize variables
-Init_flow
-InitFVM
-
-dimX = 50;
-dimY = 50;
+dimX = 30;
+dimY = 30;
 
 % Physical properties of nozzle
 D_t = 0.05;                 % Throat Diameter: 5cm 
@@ -20,29 +17,34 @@ M_solid1 = zeros(dimY,dimX);
 M_flow = zeros(dimY,dimX);
 M_solid2 = zeros(dimY,dimX);
 
+%% Developing Temperature Profile for flow
+T_prev = 300.*ones(dimY,dimX);
+axial_loc = 0.5;
+[Area_diff, P_dif] = Complete_nozzle(D_t, axial_loc, D_e);
+
 %% set up the mesh
-R = 0.74;
-h1 = 0.005;
-h2 = 0.025;
-h3 = 0.005;
+R = 0.5*sqrt((4/pi)*Area_diff);
+h1 = 0.01;
+h2 = 0.01;
+h3 = 0.01;
 
-[X_solid1, Y_solid1] = circular_mesh(M_solid1, R ,h1, 3);
-[X_flow, Y_flow] = circular_mesh(M_flow, R+h1 ,h2, 3);
-[X_solid2, Y_solid2] = circular_mesh(M_solid2, R+h1+h2 ,h3, 3);
+[X_solid1, Y_solid1] = circular_mesh(M_solid1, R ,h1, 2);
+[X_flow, Y_flow] = circular_mesh(M_flow, R+h1 ,h2, 2);
+[X_solid2, Y_solid2] = circular_mesh(M_solid2, R+h1+h2 ,h3, 2);
 
-Y_SOLID = [Y_solid2; Y_flow; Y_solid1];
+
+[X_SOLID1, Y_SOLID1] = circular_mesh(M_solid1, R ,h1, -2);
+[X_SOLID2, Y_SOLID2] = circular_mesh(M_flow, R+h1 ,h2, -2);
+[X_SOLID3, Y_SOLID3] = circular_mesh(M_solid2, R+h1+h2 ,h3, -2);
+
+X_SOLID = [X_SOLID3; X_SOLID2; X_SOLID1];
+Y_SOLID = [Y_SOLID3; Y_SOLID2; Y_SOLID1];
+X_SOLID([size(M_solid2,1), size(M_solid2,1)+size(M_flow,1)],:) = [];
 Y_SOLID([size(M_solid2,1), size(M_solid2,1)+size(M_flow,1)],:) = [];
+X_SOLID = flip(X_SOLID,2);
 Y_SOLID = flip(Y_SOLID,2);
 
-X_SOLID = -[X_solid2; X_flow; X_solid1];
-X_SOLID([size(M_solid2,1), size(M_solid2,1)+size(M_flow,1)],:) = [];
-X_SOLID = flip(X_SOLID,2);
 M_SOLID = zeros(size(Y_SOLID));
-
-%% Developing Temperature Profile for flow
-T_prev = 298.*ones(dimY,dimX);
-axial_loc = 0.5;
-[Area_dif, P_dif] = Complete_nozzle(D_t, axial_loc, D_e);
 
 %% Solving velocity part of flow
 u = solveFVM_velocity(M_flow, X_flow, Y_flow, P_dif);
@@ -63,24 +65,18 @@ Tw_flow_solid2 = 0.*ones(1,size(M_flow,2));
 % Initial guess for Tw_SOLID_right wall temperature
 Tw_SOLID = 0.*ones(1,size(M_SOLID,1))';
 
-eps = 1;                           % For stopping criteria
+eps = 0.01;                           % For stopping criteria
 
-max_Tw_gas_solid1_h = zeros(1,100);              % Storing the max value of temperature at gas_solid wall on hot side       
-max_Tw_gas_solid1_s = zeros(1,100);              % Storing the max value of temperature at gas_solid wall on solid side 
-max_Tw_solid1_flow_s = zeros(1,100);             % Storing the max value of temperature at solid_flow wall on solid side 
-max_Tw_solid1_flow_f = zeros(1,100);             % Storing the max value of temperature at solid_flow wall on flow side 
-max_Tw_flow_solid2_s = zeros(1,100);             % Storing the max value of temperature at solid_flow wall on solid side 
-max_Tw_flow_solid2_f = zeros(1,100);             % Storing the max value of temperature at solid_flow wall on flow side 
-max_Tw_SOLID_left = zeros(1,100);             % Storing the max value of temperature at solid_flow wall on solid side 
-max_Tw_SOLID_right = zeros(1,100);             % Storing the max value of temperature at solid_flow wall on flow side 
+error_gas_solid1 = zeros(1,100);
+error_solid1_flow = zeros(1,100);
+error_flow_solid2 =   zeros(1,100);
+error_left_right =  zeros(1,100);
 
 fprintf('__________________________________________________________________________\n');
 fprintf('                                Residuals                                 \n');
 fprintf('__________________________________________________________________________\n\n');
 fprintf('Iteration\t|\tGas-Solid1\t|\tSolid1_Flow\t|\tFlow-Solid2\t|\tSOLID-right\n');
-f1 = figure(1);
-f1.WindowState = 'maximized';
-hold on;
+
 
 residuals = [];
 for iter = 1:100
@@ -89,7 +85,7 @@ for iter = 1:100
     solid_type = "solid1";
     Tw_gas_solid1_h = Tw_gas_solid1;                                   % For the purpose of comparing the hotter and colder wall sides
     Tw_solid1_flow_s = Tw_solid1_flow;                                 % For the purpose of comparing the solid and flow wall sides
-    Q_gas_solid1 = 0.4e-02.*heat_flux(Area_dif, A_t, Tw_gas_solid1_h);      % Heat flux at every southern node of solid1 except corners
+    Q_gas_solid1 = 0.4e-02.*heat_flux(Area_diff, A_t, Tw_gas_solid1_h);      % Heat flux at every southern node of solid1 except corners
     Tw_solid1_SOLID = Tw_SOLID(end-dimY+1:end);                        % Temperature at interface of solid1 and SOLID
     [T_solid1, Q_solid1_flow, Q_solid1_SOLID] = solveFVM(solid_type, M_solid1, X_solid1, Y_solid1, Tw_solid1_flow_s, Tw_solid1_SOLID, Q_gas_solid1, [] );
     T_solid1 = real(T_solid1);
@@ -97,20 +93,17 @@ for iter = 1:100
     Tw_gas_solid1_s = T_solid1(end,:);                                 % Extracting the temp at southern nodes in solid domain
     Tw_gas_solid1 = Tw_gas_solid1_s;       
 
-    max_Tw_gas_solid1_h(iter) = max(Tw_gas_solid1_h);                  % Storing the max value of temp at hot side in max_Tw_h vector
-    max_Tw_gas_solid1_s(iter) = max(Tw_gas_solid1_s);                  % Storing the max value of temp at solid side in max_Tw_c vector
-
-
+    error_gas_solid1(1,iter) = max(abs(Tw_gas_solid1_h - Tw_gas_solid1_s));
+    
     % Solving the flow part assuming some wall temperature of solid1+flow
     Tw_flow_solid2_f = Tw_flow_solid2;
     [T_flow, Q_flow_solid2, Q_flow_SOLID] = solveFVM_temp(M_flow, X_flow, Y_flow, T_prev, u, Q_solid1_flow, Tw_flow_solid2_f, Tw_SOLID(dimY + 1:2*dimY));
     T_flow = real(T_flow);
+    T_prev = T_flow;
     Tw_solid1_flow_f = T_flow(end,:);
-    Tw_solid1_flow = Tw_solid1_flow_f ;
+    Tw_solid1_flow = Tw_solid1_flow_f;
 
-    max_Tw_solid1_flow_s(iter) = max(Tw_solid1_flow_s);                  % Storing the max value of temp at hot side in max_Tw_h vector
-    max_Tw_solid1_flow_f(iter) = max(Tw_solid1_flow_f);                  % Storing the max value of temp at solid side in max_Tw_c vector
-
+    error_solid1_flow(1,iter) = max(abs(Tw_solid1_flow_s - Tw_solid1_flow_f));
 
     % Solid type Solid2
     solid_type = "solid2";
@@ -119,15 +112,13 @@ for iter = 1:100
     T_solid2 = real(T_solid2);
 
     Tw_flow_solid2_s = T_solid2(end,:);  
-    max_Tw_flow_solid2_s(iter) = max(Tw_flow_solid2_s);                  % Storing the max value of temp at solid side in max_Tw_flow_solid2_s vector
-    max_Tw_flow_solid2_f(iter) = max(Tw_flow_solid2_f);                  % Storing the max value of temp at fluid side in max_Tw_flow_solid2_f vector
-
     Tw_flow_solid2 = Tw_flow_solid2_s; 
 
+    error_flow_solid2(1,iter) = max(abs(Tw_flow_solid2_s - Tw_flow_solid2_f));
 
     % SOLID
     Tw_gas_SOLID_h = Tw_gas_SOLID;                                      
-    Q_gas_SOLID = 0.4e-02.*heat_flux(Area_dif, A_t, Tw_gas_SOLID_h); 
+    Q_gas_SOLID = 0.4e-02.*heat_flux(Area_diff, A_t, Tw_gas_SOLID_h); 
     Q_east_SOLID = [Q_solid2_SOLID; Q_flow_SOLID; Q_solid1_SOLID];
     Q_east_SOLID([size(M_solid2,1), size(M_solid2,1)+size(M_flow,1)],:) = [];
 
@@ -136,64 +127,46 @@ for iter = 1:100
     [T_SOLID, ~, ~] = solveFVM(solid_type, M_SOLID, X_SOLID, Y_SOLID, [] ,[] , Q_gas_SOLID, Q_east_SOLID);
     T_SOLID = real(T_SOLID);
 
-    max_Tw_SOLID_left(iter) = max(T_SOLID(:,end));                  % Storing the max value of temp at solid side in max_Tw_flow_solid2_s vector
-    max_Tw_SOLID_right(iter) = max(Tw_SOLID_left);                  % Storing the max value of temp at fluid side in max_Tw_flow_solid2_f vector
     Tw_SOLID = T_SOLID(:,end);
     Tw_gas_SOLID = T_SOLID(end,:);
 
-    subplot(2,2,1)
-    plot(1:iter,max_Tw_gas_solid1_h(1:iter),'r-o',1:iter,max_Tw_gas_solid1_s(1:iter),'b-o')
-    xlim([1 iter+1])
-    title('Residual for Gas+Solid1 Interface')
-    xlabel('Iteration','FontSize',14)
-    ylabel('Wall Temperature','FontSize',14)
-    legend('Hot gas side','Solid side','FontSize',14,'Location','southeast')
+    error_left_right(1,iter) = max(abs(Tw_SOLID_left - T_SOLID(:,end)));
 
-    subplot(2,2,2)
-    plot(1:iter,max_Tw_solid1_flow_f(1:iter),'r-o',1:iter,max_Tw_solid1_flow_s(1:iter),'b-o')
-    xlim([1 iter+1])
-    title('Residual for Fluid+Solid1 Interface')
-    xlabel('Iteration','FontSize',14)
-    ylabel('Wall Temperature','FontSize',14)
-    legend('Flow side','Solid side','FontSize',14,'Location','southeast')
-
-    subplot(2,2,3)
-    plot(1:iter,max_Tw_flow_solid2_s(1:iter),'r-o',1:iter,max_Tw_flow_solid2_f(1:iter),'b-o')
-    xlim([1 iter+1])
-    title('Residual for Fluid+Solid2 Interface')
-    xlabel('Iteration','FontSize',14)
-    ylabel('Wall Temperature','FontSize',14)
-    legend('Solid side','Fluid side','FontSize',14,'Location','southeast')
-    drawnow;
-   
-    subplot(2,2,4)
-    plot(1:iter,max_Tw_SOLID_right(1:iter),'r-o',1:iter,max_Tw_SOLID_left(1:iter),'b-o')
-    xlim([1 iter+1])
-    title('Residual for left+right Interface')
-    xlabel('Iteration','FontSize',14)
-    ylabel('Wall Temperature','FontSize',14)
-    legend('Right side','Left side','FontSize',14,'Location','southeast')
-    drawnow;
 
     iterationStr = sprintf('%-9d', iter);
-    residual1 = sprintf('%.6f', norm(Tw_gas_solid1_h - Tw_gas_solid1_s));
-    residual2 = sprintf('%.6f', norm(Tw_solid1_flow_s - Tw_solid1_flow_f));
-    residual3 = sprintf('%.6f', norm(Tw_flow_solid2_s - Tw_flow_solid2_f));
-    residual4 = sprintf('%.6f', norm(Tw_SOLID - Tw_SOLID_left));
+    residual1 = sprintf('%.6f', max(abs(Tw_gas_solid1_h - Tw_gas_solid1_s)));
+    residual2 = sprintf('%.6f', max(abs(Tw_solid1_flow_s - Tw_solid1_flow_f)));
+    residual3 = sprintf('%.6f', max(abs(Tw_flow_solid2_s - Tw_flow_solid2_f)));
+    residual4 = sprintf('%.6f', max(abs(Tw_SOLID - Tw_SOLID_left)));
 
     fprintf('%s\t|\t%s\t|\t%s\t|\t%s\t|\t%s\n', iterationStr, residual1, residual2, residual3,residual4);
 
 
     % Checking if the solution has converged or not
-    if norm(Tw_gas_solid1_h - Tw_gas_solid1_s)<eps &&...
-            norm(Tw_solid1_flow_s - Tw_solid1_flow_f) <eps               
+    if max(abs(Tw_gas_solid1_h - Tw_gas_solid1_s))<eps &&...
+            max(abs(Tw_solid1_flow_s - Tw_solid1_flow_f)) <eps &&...
+            max(abs(Tw_flow_solid2_s - Tw_flow_solid2_f)) <eps &&...
+            max(abs(Tw_SOLID - Tw_SOLID_left)) <eps
+        fprintf("Solution has converged.  \n")
         break
     elseif iter == 100
-        fprintf("Max iterations reached");
+        fprintf("Max iterations reached.  \n");
     end 
 
 end 
 
+f1 = figure(1);
+f1.WindowState = 'maximized';
+hold on;
+plot(error_gas_solid1(1:iter),'LineWidth',2,'DisplayName','Gas+Solid1');
+plot(error_solid1_flow(1:iter),'LineWidth',2,'DisplayName','Solid1+Flow');
+plot(error_flow_solid2(1:iter),'LineWidth',2,'DisplayName','Flow+Solid2');
+plot(error_left_right(1:iter),'LineWidth',2,'DisplayName','SOLID+Right');
+xlim([1 iter+1])
+title('Residuals')
+xlabel('Iteration','FontSize',14)
+ylabel('Residuals','FontSize',14)
+legend('FontSize',14,'Location','northeast')
 
       
 %% Plot for the temperature distribution
@@ -238,4 +211,4 @@ plot3( [X_solid2(1,1:end) (X_solid2(1:end,end))' X_flow(1,end)],...
     [Y_solid2(1,1:end) (Y_solid2(1:end,end))' Y_flow(1,end)],...
     5000.*ones(1,(size(X_solid2,1)+size(X_solid2,2))+1),'color','r','linewidth',1.5)
 
-
+toc
