@@ -195,7 +195,7 @@ for loc = axial_loc
     
     end 
     
-    if loc == 0.4
+    if loc == 0.5
         f1 = figure(1);
         f1.WindowState = 'maximized';
         hold on;
